@@ -87,7 +87,7 @@ echo "demo secret" > in/demo.txt
 ```
 docker run --rm \
   -v $(pwd)/in:/in -v $(pwd)/out:/out \
-  yourorg/secure-packager:latest \
+  stevef1uk/secure-packager:latest \
   packager -in /in -out /out -pub /out/customer_public.pem -zip=true
 ```
 
@@ -95,13 +95,13 @@ docker run --rm \
 ```
 docker run --rm \
   -v $(pwd)/in:/in -v $(pwd)/out:/out -v $(pwd)/keys:/keys \
-  yourorg/secure-packager:latest \
+  stevef1uk/secure-packager:latest \
   packager -in /in -out /out -pub /out/customer_public.pem -zip=true -license -vendor-pub /keys/vendor_public.pem
 ```
 
 6) Issue a token (licensing mode only)
 ```
-docker run --rm -v $(pwd)/keys:/keys yourorg/secure-packager:latest \
+docker run --rm -v $(pwd)/keys:/keys stevef1uk/secure-packager:latest \
   issue-token -priv /keys/vendor_private.pem -expiry 2025-12-31 -company Acme -email ops@acme.com -out /keys/token.txt
 ```
 
@@ -110,13 +110,13 @@ docker run --rm -v $(pwd)/keys:/keys yourorg/secure-packager:latest \
 # no licensing
 docker run --rm \
   -v $(pwd)/out:/out -v $(pwd)/dec:/dec -v $(pwd)/keys:/keys \
-  yourorg/secure-packager:latest \
+  stevef1uk/secure-packager:latest \
   unpack -zip /out/encrypted_files.zip -priv /keys/customer_private.pem -out /dec
 
 # with licensing
 docker run --rm \
   -v $(pwd)/out:/out -v $(pwd)/dec:/dec -v $(pwd)/keys:/keys \
-  yourorg/secure-packager:latest \
+  stevef1uk/secure-packager:latest \
   unpack -zip /out/encrypted_files.zip -priv /keys/customer_private.pem -out /dec -license-token /keys/token.txt
 ```
 
@@ -125,7 +125,7 @@ Tip: Simulate expiry by setting FAKE_NOW using an env file:
 echo FAKE_NOW=2100-01-01 > env/.env
 docker run --rm --env-file $(pwd)/env/.env \
   -v $(pwd)/out:/out -v $(pwd)/dec:/dec -v $(pwd)/keys:/keys \
-  yourorg/secure-packager:latest \
+  stevef1uk/secure-packager:latest \
   unpack -zip /out/encrypted_files.zip -priv /keys/customer_private.pem -out /dec -license-token /keys/token.txt
 ```
 
