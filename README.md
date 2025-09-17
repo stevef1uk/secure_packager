@@ -1,4 +1,5 @@
 ## secure_packager
+![secure_packager logo](https://raw.githubusercontent.com/stevef1uk/secure_packager/main/images/secure_packager.png)
 
 ### Why this exists
 
@@ -19,6 +20,10 @@ Envelope encryption utilities for distributing data/models:
 - Packager: Fernet-encrypts files; wraps the Fernet key with customer's RSA public key (RSA-OAEP SHA-256)
 - Unpack: Requires customer's RSA private key to unwrap key and decrypt files
 - Issue-token: Generates vendor-signed license tokens for messaging/enforcement
+
+### Architecture
+
+![secure_packager architecture](https://raw.githubusercontent.com/stevef1uk/secure_packager/main/images/architecture.png)
 
 ### Build
 
