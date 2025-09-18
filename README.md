@@ -16,6 +16,9 @@ Modern teams need to ship valuable data/models to customers securely, without pa
 - **Simple CLI or Docker**: Use locally or via container with volume mounts.
 - **Portable**: Multi-arch container images (linux/amd64, linux/arm64).
 
+Note: the recipient of the file should create the key pair and send the public key to be used to create the archive.
+
+
 Envelope encryption utilities for distributing data/models:
 - Packager: Fernet-encrypts files; wraps the Fernet key with customer's RSA public key (RSA-OAEP SHA-256)
 - Unpack: Requires customer's RSA private key to unwrap key and decrypt files
