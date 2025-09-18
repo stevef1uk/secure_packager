@@ -28,6 +28,51 @@ Envelope encryption utilities for distributing data/models:
 
 ![secure_packager architecture](https://raw.githubusercontent.com/stevef1uk/secure_packager/main/images/architecture.png)
 
+### Quick demo (end-to-end)
+
+Script: `secure_packager/examples/quick_demo.sh`
+
+What it does:
+- Generates vendor and customer RSA keys (OpenSSL)
+- Builds tools
+- Packages with and without licensing
+- Issues a long-lived vendor-signed token
+- Unpacks both zips; license flow is auto-enforced for the licensed one
+
+Run:
+```
+./examples/quick_demo.sh
+```
+
+Outputs (under `secure_packager/tmp`):
+- `out/encrypted_files.zip` and decrypted `dec/`
+- `out_license/encrypted_files.zip` and decrypted `dec_license/`
+- `keys/token.txt`, `keys/vendor_public.pem`, `keys/customer_private.pem`
+
+### Quick demo with Docker
+
+Script: `secure_packager/examples/quick_demo_docker.sh`
+
+Same functionality as the regular demo but uses the released Docker container instead of building locally. Useful for testing without Go installation or for CI/CD environments.
+
+What it does:
+- Generates vendor and customer RSA keys (OpenSSL)
+- Pulls the Docker image
+- Packages with and without licensing using Docker
+- Issues a long-lived vendor-signed token using Docker
+- Unpacks both zips using Docker; license flow is auto-enforced for the licensed one
+
+Run:
+```
+./examples/quick_demo_docker.sh
+```
+
+Outputs (under `secure_packager/tmp`):
+- `out/encrypted_files.zip` and decrypted `dec/`
+- `out_license/encrypted_files.zip` and decrypted `dec_license/`
+- `keys/token.txt`, `keys/vendor_public.pem`, `keys/customer_private.pem`
+
+
 ### Build
 
 ```
@@ -136,50 +181,6 @@ docker run --rm --env-file $(pwd)/env/.env \
   stevef1uk/secure-packager:latest \
   unpack -zip /out/encrypted_files.zip -priv /keys/customer_private.pem -out /dec -license-token /keys/token.txt
 ```
-
-### Quick demo (end-to-end)
-
-Script: `secure_packager/examples/quick_demo.sh`
-
-What it does:
-- Generates vendor and customer RSA keys (OpenSSL)
-- Builds tools
-- Packages with and without licensing
-- Issues a long-lived vendor-signed token
-- Unpacks both zips; license flow is auto-enforced for the licensed one
-
-Run:
-```
-./examples/quick_demo.sh
-```
-
-Outputs (under `secure_packager/tmp`):
-- `out/encrypted_files.zip` and decrypted `dec/`
-- `out_license/encrypted_files.zip` and decrypted `dec_license/`
-- `keys/token.txt`, `keys/vendor_public.pem`, `keys/customer_private.pem`
-
-### Quick demo with Docker
-
-Script: `secure_packager/examples/quick_demo_docker.sh`
-
-Same functionality as the regular demo but uses the released Docker container instead of building locally. Useful for testing without Go installation or for CI/CD environments.
-
-What it does:
-- Generates vendor and customer RSA keys (OpenSSL)
-- Pulls the Docker image
-- Packages with and without licensing using Docker
-- Issues a long-lived vendor-signed token using Docker
-- Unpacks both zips using Docker; license flow is auto-enforced for the licensed one
-
-Run:
-```
-./examples/quick_demo_docker.sh
-```
-
-Outputs (under `secure_packager/tmp`):
-- `out/encrypted_files.zip` and decrypted `dec/`
-- `out_license/encrypted_files.zip` and decrypted `dec_license/`
-- `keys/token.txt`, `keys/vendor_public.pem`, `keys/customer_private.pem`
 
 ### Modes
 
