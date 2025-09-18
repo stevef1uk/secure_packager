@@ -1,28 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Quick end-to-end demo for secure_packager
+# Quick end-to-end demo for secure_packager using Docker
 # - Generates vendor and customer RSA keys
 # - Creates a sample input file
-# - Packages without license and with license
-# - Issues a vendor-signed token
-# - Unpacks both zips (license/non-license)
+# - Packages without license and with license using Docker
+# - Issues a vendor-signed token using Docker
+# - Unpacks both zips (license/non-license) using Docker
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-BUILD_DIR="$ROOT_DIR"
 WORK_DIR="$ROOT_DIR/tmp"
 INPUT_DIR="$WORK_DIR/in"
 OUT_NO_LIC="$WORK_DIR/out"
 OUT_LIC="$WORK_DIR/out_license"
 DEC_NO_LIC="$WORK_DIR/dec"
 DEC_LIC="$WORK_DIR/dec_license"
-
 KEYS_DIR="$WORK_DIR/keys"
+
 VENDOR_PRIV="$KEYS_DIR/vendor_private.pem"
 VENDOR_PUB="$KEYS_DIR/vendor_public.pem"
 CUSTOMER_PRIV="$KEYS_DIR/customer_private.pem"
 CUSTOMER_PUB="$OUT_NO_LIC/customer_public.pem"
 TOKEN_PATH="$KEYS_DIR/token.txt"
+
+DOCKER_IMAGE="stevef1uk/secure-packager:latest"
 
 echo "[1/7] Prepare demo workspace..."
 # Clean only the directories we'll use, preserve existing tmp structure
@@ -42,29 +43,40 @@ echo "[3/7] Create sample input files..."
 echo "hello secure world" > "$INPUT_DIR/hello.txt"
 dd if=/dev/urandom of="$INPUT_DIR/random.bin" bs=1k count=32 2>/dev/null
 
-echo "[4/7] Build tools..."
-pushd "$BUILD_DIR" >/dev/null
-go build ./cmd/packager
-go build ./cmd/unpack
-go build ./cmd/issue-token
-popd >/dev/null
+echo "[4/7] Pull Docker image..."
+docker pull "$DOCKER_IMAGE"
 
-echo "[5/7] Package WITHOUT licensing..."
-"$BUILD_DIR"/packager -in "$INPUT_DIR" -out "$OUT_NO_LIC" -pub "$CUSTOMER_PUB" -zip=true
+echo "[5/7] Package WITHOUT licensing using Docker..."
+docker run --rm \
+  -v "$INPUT_DIR:/in" -v "$OUT_NO_LIC:/out" \
+  "$DOCKER_IMAGE" \
+  packager -in /in -out /out -pub /out/customer_public.pem -zip=true
 
-echo "[6/7] Package WITH licensing (+ manifest + embedded vendor public key)..."
-"$BUILD_DIR"/packager -in "$INPUT_DIR" -out "$OUT_LIC" -pub "$CUSTOMER_PUB" -zip=true -license -vendor-pub "$VENDOR_PUB"
+echo "[6/7] Package WITH licensing using Docker (+ manifest + embedded vendor public key)..."
+# Copy customer public key to the licensing output directory
+cp "$CUSTOMER_PUB" "$OUT_LIC/customer_public.pem"
+docker run --rm \
+  -v "$INPUT_DIR:/in" -v "$OUT_LIC:/out" -v "$KEYS_DIR:/keys" \
+  "$DOCKER_IMAGE" \
+  packager -in /in -out /out -pub /out/customer_public.pem -zip=true -license -vendor-pub /keys/vendor_public.pem
 
-echo "Issue a vendor-signed token (expiry far in future for demo)..."
-"$BUILD_DIR"/issue-token -priv "$VENDOR_PRIV" -expiry 2099-12-31 -company "Demo Co" -email "demo@example.com" -out "$TOKEN_PATH"
+echo "Issue a vendor-signed token using Docker (expiry far in future for demo)..."
+docker run --rm -v "$KEYS_DIR:/keys" \
+  "$DOCKER_IMAGE" \
+  issue-token -priv /keys/vendor_private.pem -expiry 2099-12-31 -company "Demo Co" -email "demo@example.com" -out /keys/token.txt
 
-echo "[7/7] Unpack both zips..."
+echo "[7/7] Unpack both zips using Docker..."
 echo "- Unpack NO LICENSE zip..."
-"$BUILD_DIR"/unpack -zip "$OUT_NO_LIC/encrypted_files.zip" -priv "$CUSTOMER_PRIV" -out "$DEC_NO_LIC"
+docker run --rm \
+  -v "$OUT_NO_LIC:/out" -v "$DEC_NO_LIC:/dec" -v "$KEYS_DIR:/keys" \
+  "$DOCKER_IMAGE" \
+  unpack -zip /out/encrypted_files.zip -priv /keys/customer_private.pem -out /dec
 
 echo "- Unpack WITH LICENSE zip (auto-detect manifest, verify token)..."
-"$BUILD_DIR"/unpack -zip "$OUT_LIC/encrypted_files.zip" -priv "$CUSTOMER_PRIV" -out "$DEC_LIC" \
-  -license-token "$TOKEN_PATH"
+docker run --rm \
+  -v "$OUT_LIC:/out" -v "$DEC_LIC:/dec" -v "$KEYS_DIR:/keys" \
+  "$DOCKER_IMAGE" \
+  unpack -zip /out/encrypted_files.zip -priv /keys/customer_private.pem -out /dec -license-token /keys/token.txt
 
 echo "\nDemo completed. Outputs:"
 echo "  No-license decrypted dir: $DEC_NO_LIC"
@@ -74,5 +86,3 @@ echo "  Vendor pub: $VENDOR_PUB"
 echo "  Customer pub: $CUSTOMER_PUB"
 echo "\nAll outputs are in the tmp/ directory:"
 echo "  ls -la tmp/"
-
-
