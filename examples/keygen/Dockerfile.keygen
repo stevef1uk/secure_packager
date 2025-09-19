@@ -1,0 +1,74 @@
+# Dockerfile for OpenSSL key generation container
+# This container provides OpenSSL for generating RSA key pairs
+# without requiring users to have OpenSSL installed locally
+
+FROM alpine:3.20
+
+# Install OpenSSL
+RUN apk add --no-cache openssl
+
+# Create working directory
+WORKDIR /app
+
+# Create a simple script for key generation
+RUN printf '#!/bin/sh\n\
+set -e\n\
+\n\
+# Function to generate RSA key pair\n\
+generate_keypair() {\n\
+    local name="$1"\n\
+    local key_size="${2:-2048}"\n\
+    \n\
+    echo "Generating $name key pair (${key_size} bits)..."\n\
+    \n\
+    # Change to output directory\n\
+    cd /output\n\
+    \n\
+    # Generate private key\n\
+    openssl genrsa -out "${name}_private.pem" "$key_size"\n\
+    \n\
+    # Generate public key from private key\n\
+    openssl rsa -in "${name}_private.pem" -pubout -out "${name}_public.pem"\n\
+    \n\
+    echo "Generated ${name}_private.pem and ${name}_public.pem"\n\
+    echo "Key size: $(openssl rsa -in "${name}_private.pem" -text -noout | grep "Private-Key:" | cut -d: -f2 | tr -d " ")"\n\
+}\n\
+\n\
+# Main execution\n\
+case "$1" in\n\
+    "customer")\n\
+        generate_keypair "customer" "${2:-2048}"\n\
+        ;;\n\
+    "vendor")\n\
+        generate_keypair "vendor" "${2:-2048}"\n\
+        ;;\n\
+    "both")\n\
+        generate_keypair "customer" "${2:-2048}"\n\
+        generate_keypair "vendor" "${2:-2048}"\n\
+        ;;\n\
+    "help"|"--help"|"-h"|"")\n\
+        echo "Usage: keygen {customer|vendor|both} [key_size]"\n\
+        echo "  customer: Generate customer key pair"\n\
+        echo "  vendor:   Generate vendor key pair"\n\
+        echo "  both:     Generate both key pairs"\n\
+        echo "  key_size: RSA key size in bits (default: 2048)"\n\
+        echo ""\n\
+        echo "Examples:"\n\
+        echo "  keygen customer 2048"\n\
+        echo "  keygen vendor 4096"\n\
+        echo "  keygen both"\n\
+        ;;\n\
+    *)\n\
+        echo "Unknown command: $1"\n\
+        echo "Use '\''keygen help'\'' for usage information"\n\
+        exit 1\n\
+        ;;\n\
+esac\n\
+' > /usr/local/bin/keygen && chmod +x /usr/local/bin/keygen
+
+# Set default entrypoint
+ENTRYPOINT ["keygen"]
+CMD ["help"]
+
+# Volume for output
+VOLUME ["/output"]

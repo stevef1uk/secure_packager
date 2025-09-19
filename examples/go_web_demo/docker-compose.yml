@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Key generation service
+  keygen:
+    build:
+      context: .
+      dockerfile: ../keygen/Dockerfile.keygen
+    container_name: secure-packager-keygen
+    volumes:
+      - ./keys:/output
+
+  # Go web demo service
+  web-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: secure-packager-web-demo
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./data:/app/data
+      - ./output:/app/output
+      - ./keys:/app/keys
+      - ./logs:/app/logs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - PORT=8080
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    depends_on:
+      - keygen
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Secure packager service (for reference)
+  packager:
+    image: stevef1uk/secure-packager:latest
+    container_name: secure-packager-tools
+    volumes:
+      - ./data:/in
+      - ./output:/out
+      - ./keys:/keys
+    profiles:
+      - tools
