@@ -437,4 +437,107 @@ Both examples demonstrate:
 
 For detailed documentation, see the README files in each example directory.
 
+### 3. Go Web UI Demo (`examples/go_web_demo/`)
+
+**What it demonstrates:**
+- Complete web-based interface for `secure_packager`
+- Interactive file management and encryption workflows
+- Real-time file upload, packaging, and unpacking
+- License token management with expiry controls
+- File browser with download capabilities
+
+**Key Features:**
+- **Web Interface**: Modern, responsive UI built with Go and Bootstrap
+- **File Management**: Upload, view, and download files
+- **Complete Workflow**: Key generation → File creation → Packaging → Token issuance → Unpacking
+- **Licensing Support**: Full licensing workflow with expiry management
+- **File Browser**: View and download encrypted/decrypted files
+- **Docker Integration**: Containerized deployment with pre-generated keys
+
+**Key Components:**
+- **Go Web Server** (`main.go`): Gin-based web application
+- **HTML Templates** (`templates/`): Responsive web interface
+- **Static Assets** (`static/`): CSS, JavaScript, and Bootstrap
+- **Key Generation** (`keygen/`): OpenSSL-based key generation utilities
+- **Docker Compose**: Multi-container orchestration
+
+**Quick Start:**
+```bash
+cd examples/go_web_demo
+./demo.sh
+```
+
+**Access the UI:**
+- Open http://localhost:8081 in your browser
+- All functionality is available through the web interface
+
+**Manual Usage:**
+```bash
+# Generate keys first
+cd examples/go_web_demo
+./generate_keys.sh
+
+# Build and run with Docker Compose
+docker-compose up --build
+
+# Access at http://localhost:8081
+```
+
+**Web UI Features:**
+- **Key Generation Tab**: View pre-generated keys and regeneration instructions
+- **File Management Tab**: Upload files, create sample files, clear data directory
+- **Package Files Tab**: Encrypt files with/without licensing, clear output files
+- **License Token Tab**: Issue vendor-signed tokens with custom expiry
+- **Unpack Files Tab**: Decrypt files with licensing verification, clear decrypted files
+- **Upload & Unpack Tab**: Upload encrypted packages and keys for direct unpacking
+- **File Browser Tab**: View and download files from all directories
+
+**API Endpoints:**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+| POST | `/api/files/upload` | Upload files to data directory |
+| POST | `/api/files/clear-data` | Clear data directory |
+| POST | `/api/files/clear-output` | Clear output directory |
+| POST | `/api/files/clear-decrypted` | Clear decrypted directory |
+| GET | `/api/files/download/:filename` | Download files |
+| POST | `/api/files/upload-unpack` | Upload and unpack encrypted files |
+| POST | `/package` | Package files with encryption |
+| POST | `/unpack` | Unpack encrypted files |
+| POST | `/issue-token` | Issue license token |
+| GET | `/api/files/:directory` | List files in directory |
+
+**Use Cases:**
+- **Demo and Testing**: Interactive demonstration of all features
+- **File Management**: Upload and manage files through web interface
+- **Workflow Testing**: Complete end-to-end encryption workflows
+- **Key Management**: Generate and manage RSA key pairs
+- **License Management**: Create and manage license tokens
+- **File Sharing**: Upload encrypted packages for others to unpack
+
+**Security Features:**
+- **Pre-generated Keys**: Keys are generated on the host system, not in containers
+- **File Isolation**: Separate directories for input, output, and decrypted files
+- **Secure Downloads**: Files are served through secure endpoints
+- **License Verification**: Full licensing workflow with expiry management
+- **File Cleanup**: Clear functions for all directories
+
+**Getting Started with Web UI:**
+1. **Run the demo**: `cd examples/go_web_demo && ./demo.sh`
+2. **Access the UI**: Open http://localhost:8081
+3. **Upload files**: Use the File Management tab to upload your files
+4. **Package files**: Use the Package Files tab to encrypt with/without licensing
+5. **Issue tokens**: Use the License Token tab to create license tokens
+6. **Unpack files**: Use the Unpack Files tab to decrypt and verify licenses
+7. **Browse files**: Use the File Browser tab to view and download files
+
+**Troubleshooting:**
+- **Port conflicts**: The UI runs on port 8081 by default
+- **Key generation**: Ensure keys are pre-generated before starting the container
+- **File permissions**: Check Docker volume mounts and file permissions
+- **Container logs**: Use `docker-compose logs` to debug issues
+
+For detailed documentation, see the README files in each example directory.
+
 
