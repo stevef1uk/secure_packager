@@ -1,0 +1,7 @@
+*.DS_Store
+examples/*/data/
+examples/*/keys/
+examples/*/output/
+issue-token
+packager
+unpack
