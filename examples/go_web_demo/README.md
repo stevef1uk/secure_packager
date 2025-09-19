@@ -38,7 +38,7 @@ This is a Go-based web interface alternative to Gradio for demonstrating the sec
    ```
 
 3. **Access the web interface:**
-   Open your browser to `http://localhost:8080`
+   Open your browser to `http://localhost:8081`
 
 4. **Stop the services:**
    ```bash
