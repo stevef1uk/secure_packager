@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-shield-alt me-2"></i>
+                Secure Packager Demo
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/health" target="_blank">
+                    <i class="fas fa-heartbeat me-1"></i>
+                    Health Check
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="jumbotron bg-light p-4 rounded mb-4">
+                    <h1 class="display-4">
+                        <i class="fas fa-lock text-primary me-3"></i>
+                        Secure Packager Demonstration
+                    </h1>
+                    <p class="lead">
+                        This interactive demo showcases the <strong>secure_packager</strong> functionality using Docker containers.
+                        No local installation of OpenSSL or secure_packager tools is required!
+                    </p>
+                    <hr class="my-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-list-ol me-2"></i>How it works:</h5>
+                            <ol>
+                                <li><strong>Generate Keys</strong>: Create RSA key pairs for customer and vendor</li>
+                                <li><strong>Create Files</strong>: Add sample files to encrypt</li>
+                                <li><strong>Package</strong>: Encrypt files with optional licensing</li>
+                                <li><strong>Issue Token</strong>: Create license tokens (if using licensing)</li>
+                                <li><strong>Unpack</strong>: Decrypt and verify files</li>
+                            </ol>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-docker me-2"></i>Docker Containers Used:</h5>
+                            <ul class="list-unstyled">
+                                <li><code>stevef1uk/secure-packager:latest</code> - Main tools</li>
+                                <li><code>secure-packager-keygen:latest</code> - OpenSSL key generation</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs" id="demoTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="keys-tab" data-bs-toggle="tab" data-bs-target="#keys" type="button" role="tab">
+                    <i class="fas fa-key me-2"></i>Key Generation
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="files-tab" data-bs-toggle="tab" data-bs-target="#files" type="button" role="tab">
+                    <i class="fas fa-file me-2"></i>Create Files
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="package-tab" data-bs-toggle="tab" data-bs-target="#package" type="button" role="tab">
+                    <i class="fas fa-archive me-2"></i>Package Files
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="token-tab" data-bs-toggle="tab" data-bs-target="#token" type="button" role="tab">
+                    <i class="fas fa-ticket-alt me-2"></i>License Token
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="unpack-tab" data-bs-toggle="tab" data-bs-target="#unpack" type="button" role="tab">
+                    <i class="fas fa-unlock me-2"></i>Unpack Files
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="browser-tab" data-bs-toggle="tab" data-bs-target="#browser" type="button" role="tab">
+                    <i class="fas fa-folder me-2"></i>File Browser
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="upload-unpack-tab" data-bs-toggle="tab" data-bs-target="#upload-unpack" type="button" role="tab">
+                    <i class="fas fa-upload me-2"></i>Upload & Unpack
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="workflow-tab" data-bs-toggle="tab" data-bs-target="#workflow" type="button" role="tab">
+                    <i class="fas fa-play me-2"></i>Complete Workflow
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="demoTabsContent">
+            <!-- Key Generation Tab -->
+            <div class="tab-pane fade show active" id="keys" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-key me-2"></i>Generate RSA Key Pairs</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Generate customer and vendor RSA key pairs using OpenSSL in a Docker container.</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-check-circle me-2"></i>Keys Status</h6>
+                        <p class="mb-2">RSA key pairs have been pre-generated and are ready to use!</p>
+                        <ul class="mb-0 small">
+                            <li>Customer keys: 2048-bit RSA</li>
+                            <li>Vendor keys: 2048-bit RSA</li>
+                        </ul>
+                    </div>
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Key Generation</h6>
+                        <p class="mb-2 small">Keys are generated before the container starts using the <code>generate_keys.sh</code> script.</p>
+                        <p class="mb-0 small">To regenerate keys, stop the container and run <code>./generate_keys.sh</code> from the host system.</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-key me-2"></i>Available Keys</h6>
+                        <div id="keyFiles" class="small">
+                            <div class="file-list">
+                                <div class="file-item">
+                                    <span class="file-name">customer_private.pem</span>
+                                    <span class="file-type">private key</span>
+                                </div>
+                                <div class="file-item">
+                                    <span class="file-name">customer_public.pem</span>
+                                    <span class="file-type">public key</span>
+                                </div>
+                                <div class="file-item">
+                                    <span class="file-name">vendor_private.pem</span>
+                                    <span class="file-type">private key</span>
+                                </div>
+                                <div class="file-item">
+                                    <span class="file-name">vendor_public.pem</span>
+                                    <span class="file-type">public key</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                        <div id="keyStatus" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Files Tab -->
+            <div class="tab-pane fade" id="files" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-file me-2"></i>Create Sample Files</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Add files that will be encrypted by the secure packager. You can either upload your own files or create sample files.</p>
+                        
+                        <!-- File Upload Section -->
+                        <div class="mb-4">
+                            <h6><i class="fas fa-upload me-2"></i>Upload Your Files</h6>
+                            <div class="mb-3">
+                                <label for="fileUpload" class="form-label">Select Files</label>
+                                <input type="file" class="form-control" id="fileUpload" multiple accept="*/*">
+                                <div class="form-text">Select one or more files to upload for encryption</div>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-primary" onclick="uploadFiles()">
+                                    <i class="fas fa-upload me-2"></i>Upload Files
+                                </button>
+                                <button class="btn btn-outline-warning" onclick="clearDataDirectory()">
+                                    <i class="fas fa-trash me-2"></i>Clear Data Directory
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Or Create Sample Files -->
+                        <div class="mb-4">
+                            <h6><i class="fas fa-file-plus me-2"></i>Or Create Sample Files</h6>
+                            <div class="mb-3">
+                                <label for="fileContent" class="form-label">Sample File Content</label>
+                                <textarea class="form-control" id="fileContent" rows="3">This is a sample file for demonstration.
+It contains some text that will be encrypted.
+The secure_packager will encrypt this file and
+the Docker container will decrypt it before
+the application starts processing it.</textarea>
+                            </div>
+                            <button class="btn btn-outline-primary" onclick="createFiles()">
+                                <i class="fas fa-file-plus me-2"></i>Create Sample Files
+                            </button>
+                        </div>
+
+                        <div id="fileStatus" class="mt-3"></div>
+                        <div id="createdFiles" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Package Files Tab -->
+            <div class="tab-pane fade" id="package" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-archive me-2"></i>Package Files</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Encrypt your files using the customer's public key. Choose whether to include licensing.</p>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="useLicensing">
+                                <label class="form-check-label" for="useLicensing">
+                                    Use Licensing
+                                </label>
+                                <small class="form-text text-muted">Include vendor licensing in the package</small>
+                            </div>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-primary" onclick="packageFiles()">
+                                <i class="fas fa-archive me-2"></i>Package Files
+                            </button>
+                            <button class="btn btn-outline-warning" onclick="clearOutputFiles()">
+                                <i class="fas fa-trash me-2"></i>Clear Output Files
+                            </button>
+                        </div>
+                        <div id="packageStatus" class="mt-3"></div>
+                        <div id="packagedFiles" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- License Token Tab -->
+            <div class="tab-pane fade" id="token" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-ticket-alt me-2"></i>Issue License Token</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Create a vendor-signed license token for licensing verification.</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="company" class="form-label">Company Name</label>
+                                    <input type="text" class="form-control" id="company" value="Demo Co">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" value="demo@example.com">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="expiryDays" class="form-label">Expiry (days)</label>
+                                    <input type="range" class="form-range" id="expiryDays" min="30" max="3650" value="365">
+                                    <div class="d-flex justify-content-between">
+                                        <small>30</small>
+                                        <small id="expiryDaysValue">365</small>
+                                        <small>3650</small>
+                                    </div>
+                                    <small class="text-muted">Token validity period</small>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="issueToken()">
+                            <i class="fas fa-ticket-alt me-2"></i>Issue Token
+                        </button>
+                        <div id="tokenStatus" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unpack Files Tab -->
+            <div class="tab-pane fade" id="unpack" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-unlock me-2"></i>Unpack Files</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Decrypt the packaged files using the customer's private key.</p>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="unpackLicensing">
+                                <label class="form-check-label" for="unpackLicensing">
+                                    Use Licensing Verification
+                                </label>
+                                <small class="form-text text-muted">Verify license token during unpacking</small>
+                            </div>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-primary" onclick="unpackFiles()">
+                                <i class="fas fa-unlock me-2"></i>Unpack Files
+                            </button>
+                            <button class="btn btn-outline-warning" onclick="clearDecryptedFiles()">
+                                <i class="fas fa-trash me-2"></i>Clear Decrypted Files
+                            </button>
+                        </div>
+                        <div id="unpackStatus" class="mt-3"></div>
+                        <div id="unpackedFiles" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Browser Tab -->
+            <div class="tab-pane fade" id="browser" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-folder me-2"></i>File Browser</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>View the contents of files in different directories.</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="directory" class="form-label">Directory</label>
+                                    <select class="form-select" id="directory" onchange="refreshFiles()">
+                                        <option value="data">Data</option>
+                                        <option value="output">Output</option>
+                                        <option value="decrypted">Decrypted</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-secondary" onclick="refreshFiles()">
+                                    <i class="fas fa-sync me-2"></i>Refresh
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="filename" class="form-label">Filename</label>
+                                    <input type="text" class="form-control" id="filename" placeholder="Enter filename to view">
+                                </div>
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-secondary" onclick="readFile()">
+                                        <i class="fas fa-eye me-2"></i>Read File
+                                    </button>
+                                    <button class="btn btn-primary" onclick="downloadFile()" id="downloadBtn" style="display: none;">
+                                        <i class="fas fa-download me-2"></i>Download
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="fileList" class="mt-3"></div>
+                        <div id="fileContent" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload & Unpack Tab -->
+            <div class="tab-pane fade" id="upload-unpack" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Upload & Unpack Encrypted Files</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Upload an encrypted zip file along with the required keys and token to unpack it.</p>
+                        
+                        <!-- Upload Section -->
+                        <div class="mb-4">
+                            <h6><i class="fas fa-file-archive me-2"></i>Upload Encrypted Package</h6>
+                            <div class="mb-3">
+                                <label for="encryptedZipUpload" class="form-label">Encrypted ZIP File</label>
+                                <input type="file" class="form-control" id="encryptedZipUpload" accept=".zip">
+                                <div class="form-text">Select the encrypted zip file to unpack</div>
+                            </div>
+                        </div>
+
+                        <!-- Keys and Token Upload -->
+                        <div class="mb-4">
+                            <h6><i class="fas fa-key me-2"></i>Required Keys & Token</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="customerPrivateUpload" class="form-label">Customer Private Key</label>
+                                        <input type="file" class="form-control" id="customerPrivateUpload" accept=".pem">
+                                        <div class="form-text">customer_private.pem</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="vendorPublicUpload" class="form-label">Vendor Public Key</label>
+                                        <input type="file" class="form-control" id="vendorPublicUpload" accept=".pem">
+                                        <div class="form-text">vendor_public.pem</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="tokenUpload" class="form-label">License Token</label>
+                                        <input type="file" class="form-control" id="tokenUpload" accept=".txt">
+                                        <div class="form-text">token.txt</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Unpack Options -->
+                        <div class="mb-4">
+                            <h6><i class="fas fa-cog me-2"></i>Unpack Options</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="useLicensingUpload" checked>
+                                <label class="form-check-label" for="useLicensingUpload">
+                                    Use Licensing Verification
+                                </label>
+                                <div class="form-text">Verify license token during unpacking</div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="mb-4">
+                            <button class="btn btn-primary" onclick="uploadAndUnpack()">
+                                <i class="fas fa-upload me-2"></i>Upload & Unpack
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="clearUploads()">
+                                <i class="fas fa-trash me-2"></i>Clear All
+                            </button>
+                        </div>
+
+                        <!-- Status and Results -->
+                        <div id="uploadUnpackStatus" class="mt-3"></div>
+                        <div id="unpackedFilesList" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Complete Workflow Tab -->
+            <div class="tab-pane fade" id="workflow" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-play me-2"></i>Complete Workflow</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Execute the complete secure packager workflow with a single click.</p>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Warning:</strong> This will run the complete workflow including key generation, file creation, packaging, token issuance, and unpacking.
+                        </div>
+                        <button class="btn btn-success btn-lg" onclick="runCompleteWorkflow()">
+                            <i class="fas fa-play me-2"></i>Run Complete Workflow
+                        </button>
+                        <div id="workflowOutput" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-light mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6><i class="fas fa-shield-alt me-2"></i>Secure Packager Demo</h6>
+                    <p class="small text-muted">Built with Go, Gin, and Docker</p>
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="fas fa-docker me-2"></i>Docker Containers</h6>
+                    <ul class="list-unstyled small">
+                        <li><code>stevef1uk/secure-packager:latest</code> - Main tools</li>
+                        <li><code>secure-packager-keygen:latest</code> - OpenSSL key generation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+</html>
