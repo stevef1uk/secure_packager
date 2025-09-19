@@ -524,7 +524,9 @@ docker-compose up --build
 - **File Cleanup**: Clear functions for all directories
 
 **Getting Started with Web UI:**
-1. **Run the demo**: `cd examples/go_web_demo && ./demo.sh`
+1. **Run the demo script**: `cd examples/go_web_demo && ./demo.sh`
+   - This automatically generates RSA keys and starts the containers
+   - **Note**: Don't use `docker-compose up --build` directly - it will fail without keys
 2. **Access the UI**: Open http://localhost:8081
 3. **Upload files**: Use the File Management tab to upload your files
 4. **Package files**: Use the Package Files tab to encrypt with/without licensing
@@ -534,7 +536,8 @@ docker-compose up --build
 
 **Troubleshooting:**
 - **Port conflicts**: The UI runs on port 8081 by default
-- **Key generation**: Ensure keys are pre-generated before starting the container
+- **Key generation**: Always use `./demo.sh` instead of `docker-compose up --build` directly
+- **Missing keys error**: If you get "keys not found" errors, run `./generate_keys.sh` first
 - **File permissions**: Check Docker volume mounts and file permissions
 - **Container logs**: Use `docker-compose logs` to debug issues
 

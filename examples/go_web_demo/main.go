@@ -216,6 +216,89 @@ func (ds *DemoService) PackageFiles(useLicensing bool) error {
 	return nil
 }
 
+// PackageFilesToDir packages files to a specific directory
+func (ds *DemoService) PackageFilesToDir(useLicensing bool, outputDir string) error {
+	// Create output directory if it doesn't exist
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	// Copy customer public key to output directory
+	srcKey := filepath.Join(ds.config.KeysDir, "customer_public.pem")
+	dstKey := filepath.Join(outputDir, "customer_public.pem")
+	if err := copyFile(srcKey, dstKey); err != nil {
+		return fmt.Errorf("failed to copy public key: %w", err)
+	}
+
+	// Build command arguments
+	args := []string{
+		"-in", ds.config.DataDir,
+		"-out", outputDir,
+		"-pub", dstKey,
+		"-zip=true",
+	}
+
+	if useLicensing {
+		// Copy vendor public key to output directory for licensing
+		vendorSrcKey := filepath.Join(ds.config.KeysDir, "vendor_public.pem")
+		vendorDstKey := filepath.Join(outputDir, "vendor_public.pem")
+		if err := copyFile(vendorSrcKey, vendorDstKey); err != nil {
+			return fmt.Errorf("failed to copy vendor public key: %w", err)
+		}
+
+		// Add licensing arguments
+		args = append(args, "-license", "-vendor-pub", vendorDstKey)
+	}
+
+	// Run the packager command
+	cmd := exec.Command("packager", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("packaging failed: %w\nOutput: %s", err, string(output))
+	}
+
+	return nil
+}
+
+// UnpackFilesFromDir unpacks files from a specific directory
+func (ds *DemoService) UnpackFilesFromDir(useLicensing bool, inputDir, outputDir string) (string, error) {
+	// Create output directory if it doesn't exist
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	zipPath := filepath.Join(inputDir, "encrypted_files.zip")
+
+	// Build command arguments
+	args := []string{
+		"-zip", zipPath,
+		"-priv", filepath.Join(ds.config.KeysDir, "customer_private.pem"),
+		"-out", outputDir,
+	}
+
+	if useLicensing {
+		// Add licensing arguments
+		tokenPath := filepath.Join(ds.config.KeysDir, "token.txt")
+		args = append(args, "-license-token", tokenPath)
+
+		// Check for vendor public key in input directory first, then fallback to keys directory
+		vendorPublicPath := filepath.Join(inputDir, "vendor_public.pem")
+		if _, err := os.Stat(vendorPublicPath); os.IsNotExist(err) {
+			vendorPublicPath = filepath.Join(ds.config.KeysDir, "vendor_public.pem")
+		}
+		args = append(args, "-vendor-pub", vendorPublicPath)
+	}
+
+	// Run the unpack command
+	cmd := exec.Command("unpack", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return string(output), fmt.Errorf("unpacking failed: %w\nOutput: %s", err, string(output))
+	}
+
+	return string(output), nil
+}
+
 // IssueToken issues a license token
 func (ds *DemoService) IssueToken(company, email string, expiryDays int) error {
 	expiryDate := time.Now().AddDate(0, 0, expiryDays).Format("2006-01-02")
@@ -1004,7 +1087,7 @@ func main() {
 
 			// Step 3: Package without licensing
 			steps = append(steps, "\n📦 Step 3: Packaging files (no licensing)...")
-			if err := demo.PackageFiles(false); err != nil {
+			if err := demo.PackageFilesToDir(false, filepath.Join(demo.config.OutputDir, "no_license")); err != nil {
 				c.JSON(http.StatusInternalServerError, Response{
 					Success: false,
 					Message: strings.Join(append(steps, fmt.Sprintf("   ❌ Failed: %s", err.Error())), "\n"),
@@ -1015,7 +1098,7 @@ func main() {
 
 			// Step 4: Package with licensing
 			steps = append(steps, "\n📦 Step 4: Packaging files (with licensing)...")
-			if err := demo.PackageFiles(true); err != nil {
+			if err := demo.PackageFilesToDir(true, filepath.Join(demo.config.OutputDir, "with_license")); err != nil {
 				c.JSON(http.StatusInternalServerError, Response{
 					Success: false,
 					Message: strings.Join(append(steps, fmt.Sprintf("   ❌ Failed: %s", err.Error())), "\n"),
@@ -1037,7 +1120,7 @@ func main() {
 
 			// Step 6: Unpack without licensing
 			steps = append(steps, "\n📤 Step 6: Unpacking files (no licensing)...")
-			output1, err := demo.UnpackFiles(false)
+			output1, err := demo.UnpackFilesFromDir(false, filepath.Join(demo.config.OutputDir, "no_license"), filepath.Join(demo.config.OutputDir, "decrypted_no_license"))
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, Response{
 					Success: false,
@@ -1052,7 +1135,7 @@ func main() {
 
 			// Step 7: Unpack with licensing
 			steps = append(steps, "\n📤 Step 7: Unpacking files (with licensing)...")
-			output2, err := demo.UnpackFiles(true)
+			output2, err := demo.UnpackFilesFromDir(true, filepath.Join(demo.config.OutputDir, "with_license"), filepath.Join(demo.config.OutputDir, "decrypted_with_license"))
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, Response{
 					Success: false,
