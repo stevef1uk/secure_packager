@@ -539,6 +539,10 @@ docker-compose up --build
 - **Key generation**: Always use `./demo.sh` instead of `docker-compose up --build` directly
 - **Missing keys error**: If you get "keys not found" errors, run `./generate_keys.sh` first
 - **File permissions**: Check Docker volume mounts and file permissions
+- **Root ownership issue**: On x86 machines, keys may be owned by root. The `generate_keys.sh` script now automatically fixes this, but if you encounter permission issues, run:
+  ```bash
+  sudo chown -R $(id -u):$(id -g) keys/
+  ```
 - **Container logs**: Use `docker-compose logs` to debug issues
 
 For detailed documentation, see the README files in each example directory.

@@ -30,6 +30,10 @@ generate_keypair() {\n\
     # Generate public key from private key\n\
     openssl rsa -in "${name}_private.pem" -pubout -out "${name}_public.pem"\n\
     \n\
+    # Set proper permissions\n\
+    chmod 600 "${name}_private.pem"\n\
+    chmod 644 "${name}_public.pem"\n\
+    \n\
     echo "Generated ${name}_private.pem and ${name}_public.pem"\n\
     echo "Key size: $(openssl rsa -in "${name}_private.pem" -text -noout | grep "Private-Key:" | cut -d: -f2 | tr -d " ")"\n\
 }\n\
@@ -65,6 +69,15 @@ case "$1" in\n\
         ;;\n\
 esac\n\
 ' > /usr/local/bin/keygen && chmod +x /usr/local/bin/keygen
+
+# Create a non-root user
+RUN adduser -D -s /bin/sh -u 1000 keygen
+
+# Change ownership of the script
+RUN chown keygen:keygen /usr/local/bin/keygen
+
+# Switch to non-root user
+USER keygen
 
 # Set default entrypoint
 ENTRYPOINT ["keygen"]

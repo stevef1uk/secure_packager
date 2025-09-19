@@ -10,12 +10,24 @@ This directory contains Docker-based utilities for generating RSA key pairs with
 
 ## Quick Start
 
+### Build Multi-Architecture Images
+
+```bash
+# Build for current architecture only
+./build-local.sh
+
+# Build for multiple architectures (AMD64 + ARM64)
+./build.sh
+```
+
+This creates:
+- `secure-packager-keygen:latest` - Multi-architecture manifest
+- `secure-packager-keygen:latest-amd64` - AMD64 specific image
+- `secure-packager-keygen:latest-arm64` - ARM64 specific image
+
 ### Generate Keys with Docker
 
 ```bash
-# Build the keygen container
-docker build -t secure-packager-keygen:latest -f Dockerfile.keygen .
-
 # Generate customer keys (2048 bits)
 docker run --rm -v $(pwd)/keys:/output secure-packager-keygen:latest customer 2048
 
@@ -24,6 +36,18 @@ docker run --rm -v $(pwd)/keys:/output secure-packager-keygen:latest vendor 2048
 
 # Generate both key pairs at once
 docker run --rm -v $(pwd)/keys:/output secure-packager-keygen:latest both 2048
+```
+
+### Architecture-Specific Usage
+
+If you need to use a specific architecture:
+
+```bash
+# For AMD64 systems
+docker run --rm -v $(pwd)/keys:/output secure-packager-keygen:latest-amd64 customer 2048
+
+# For ARM64 systems
+docker run --rm -v $(pwd)/keys:/output secure-packager-keygen:latest-arm64 customer 2048
 ```
 
 ### Using Docker Compose
@@ -115,6 +139,8 @@ ls -la /output/
 ```
 keygen/
 ├── Dockerfile.keygen      # Key generation container
+├── build.sh              # Multi-architecture build script
+├── build-local.sh        # Local architecture build script
 └── README.md             # This file
 ```
 
