@@ -1,0 +1,70 @@
+services:
+  # File processor with encrypted data
+  file-processor-encrypted:
+    build: .
+    container_name: secure-file-processor-encrypted
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount encrypted data and keys
+      - ./data:/app/data:ro
+      - ./keys:/app/keys:ro
+    environment:
+      - APP_PORT=8080
+      - DECRYPT_OUTPUT_DIR=/app/decrypted
+      - PRIVATE_KEY_PATH=/app/keys/customer_private.pem
+      - TOKEN_FILE_PATH=/app/keys/token.txt
+      - ENCRYPTED_ZIP_PATH=/app/data/encrypted_files.zip
+    healthcheck:
+      test: ["CMD", "/app/entrypoint", "--health-check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # File processor without encrypted data (demo mode)
+  file-processor-demo:
+    build: .
+    container_name: secure-file-processor-demo
+    ports:
+      - "8081:8080"
+    volumes:
+      # Mount only demo data (no encryption)
+      - ./demo_data:/app/decrypted:ro
+    environment:
+      - APP_PORT=8080
+      - DECRYPT_OUTPUT_DIR=/app/decrypted
+      # No encryption keys - will run in demo mode
+    healthcheck:
+      test: ["CMD", "/app/entrypoint", "--health-check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Development version with debug mode
+  file-processor-dev:
+    build: .
+    container_name: secure-file-processor-dev
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./data:/app/data:ro
+      - ./keys:/app/keys:ro
+      - ./logs:/app/logs
+    environment:
+      - APP_PORT=8080
+      - DECRYPT_OUTPUT_DIR=/app/decrypted
+      - PRIVATE_KEY_PATH=/app/keys/customer_private.pem
+      - TOKEN_FILE_PATH=/app/keys/token.txt
+      - ENCRYPTED_ZIP_PATH=/app/data/encrypted_files.zip
+      - DEBUG=1
+    healthcheck:
+      test: ["CMD", "/app/entrypoint", "--health-check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped

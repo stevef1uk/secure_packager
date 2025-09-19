@@ -1,0 +1,5 @@
+This is a sample file for demonstration.
+It contains some text that will be encrypted.
+The secure_packager will encrypt this file and
+the Docker container will decrypt it before
+the application starts processing it.

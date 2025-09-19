@@ -49,22 +49,41 @@ Outputs (under `secure_packager/tmp`):
 - `out_license/encrypted_files.zip` and decrypted `dec_license/`
 - `keys/token.txt`, `keys/vendor_public.pem`, `keys/customer_private.pem`
 
-### Quick demo with Docker
+### Quick demo with Docker CLI
 
-Script: `secure_packager/examples/quick_demo_docker.sh`
+Script: `secure_packager/examples/quick_demo_cli_docker.sh`
 
 Same functionality as the regular demo but uses the released Docker container instead of building locally. Useful for testing without Go installation or for CI/CD environments.
 
 What it does:
 - Generates vendor and customer RSA keys (OpenSSL)
 - Pulls the Docker image
-- Packages with and without licensing using Docker
-- Issues a long-lived vendor-signed token using Docker
-- Unpacks both zips using Docker; license flow is auto-enforced for the licensed one
+- Packages with and without licensing using Docker CLI
+- Issues a long-lived vendor-signed token using Docker CLI
+- Unpacks both zips using Docker CLI; license flow is auto-enforced for the licensed one
 
 Run:
 ```
-./examples/quick_demo_docker.sh
+./examples/quick_demo_cli_docker.sh
+```
+
+### Test Docker Integration Example
+
+Script: `secure_packager/examples/test_docker_integration.sh`
+
+Comprehensive test script for the Docker integration example that demonstrates containerized deployment with entrypoint decryption.
+
+What it does:
+- Runs the complete Docker integration demo
+- Tests all API endpoints
+- Verifies health checks
+- Tests multiple checksum algorithms
+- Inspects container logs and resources
+- Shows decrypted files locally
+
+Run:
+```
+./examples/test_docker_integration.sh
 ```
 
 Outputs (under `secure_packager/tmp`):
@@ -260,5 +279,162 @@ go build ./cmd/packager && go build ./cmd/unpack && go build ./cmd/issue-token
 - RSA key size >= 2048 recommended
 - Only the private key holder can unwrap the Fernet key
 - No Fernet key in plaintext is shipped
+
+## Integration Examples
+
+This project includes two comprehensive integration examples that demonstrate how to use `secure_packager` in real-world applications:
+
+### 1. Library Integration Example (`examples/example/`)
+
+**What it demonstrates:**
+- How to integrate `secure_packager` as a Go library
+- File processing with checksum calculation
+- Complete workflow: encrypt → decrypt → verify
+- Both licensing and non-licensing scenarios
+
+**Key Components:**
+- **Checksum Calculator** (`checksum/`): Standalone program for file checksumming
+- **Integration Example** (`integration/`): Complete demo showing library integration
+- **Demo Script** (`demo.sh`): Automated demonstration
+
+**Quick Start:**
+```bash
+cd examples/example
+./demo.sh
+```
+
+**Manual Usage:**
+```bash
+# Checksum calculator
+cd examples/example/checksum
+go run main.go -dir ./data -algo sha256
+
+# Integration example
+cd examples/example/integration
+go run main.go -work ./demo_work
+go run main.go -work ./demo_work -license
+```
+
+### 2. Docker Integration Example (`examples/example_docker/`)
+
+**What it demonstrates:**
+- How to use `secure_packager` with Docker containers
+- Entrypoint pattern for decryption before application startup
+- Production-ready containerized deployment
+- HTTP API for file processing
+
+**Key Components:**
+- **Dockerfile**: Multi-stage build with security hardening
+- **Entrypoint** (`entrypoint/`): Decryption and application startup
+- **Main App** (`app/`): File processing HTTP API
+- **Docker Compose**: Multiple service configurations
+- **Demo Script** (`demo.sh`): Automated testing
+
+**Quick Start:**
+```bash
+cd examples/example_docker
+./demo.sh
+```
+
+**Manual Usage:**
+```bash
+# Build and run with Docker Compose
+cd examples/example_docker
+docker-compose up --build
+
+# Test the API
+curl http://localhost:8080/health
+curl -X POST http://localhost:8080/api/process \
+  -H "Content-Type: application/json" \
+  -d '{"directory": "/app/decrypted", "algorithm": "sha256"}'
+```
+
+### Integration Patterns
+
+#### Library Integration Pattern
+```go
+// 1. Create packager
+packager, err := NewSecurePackager("customer_public.pem")
+
+// 2. Encrypt directory
+err = packager.EncryptDirectory("./data", "./encrypted", false)
+
+// 3. Decrypt zip
+err = packager.DecryptZip("./encrypted/encrypted_files.zip", "./decrypted", "customer_private.pem", "")
+```
+
+#### Docker Integration Pattern
+```dockerfile
+# Multi-stage build
+FROM golang:1.21-bookworm AS build
+# Build secure_packager tools
+# Build your application
+# Build entrypoint
+
+FROM debian:bookworm-slim
+# Copy binaries
+# Set entrypoint
+ENTRYPOINT ["/app/entrypoint"]
+```
+
+### Use Cases
+
+**Library Integration** is ideal for:
+- Applications that need direct programmatic access
+- Development and testing environments
+- Custom file processing workflows
+- Integration with existing Go applications
+
+**Docker Integration** is ideal for:
+- Production deployments
+- Containerized applications
+- Microservices architecture
+- CI/CD pipelines
+- Kubernetes deployments
+
+### API Endpoints (Docker Example)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+| POST | `/api/process` | Process files in directory |
+| GET | `/api/files` | List files in directory |
+
+### Security Features
+
+Both examples demonstrate:
+- **Envelope Encryption**: RSA + Fernet encryption
+- **No Plaintext Keys**: Fernet key never stored in plaintext
+- **Key Isolation**: Only private key holder can decrypt
+- **Optional Licensing**: Vendor-signed tokens for access control
+- **File Integrity**: Checksum verification
+
+### Getting Started
+
+1. **Choose your integration approach**:
+   - Library integration for Go applications
+   - Docker integration for containerized deployments
+
+2. **Run the examples**:
+   - Follow the quick start guides above
+   - Examine the code to understand the patterns
+
+3. **Customize for your use case**:
+   - Modify file processing logic
+   - Add your own business logic
+   - Implement custom license verification
+
+4. **Deploy to production**:
+   - Use the Docker example as a template
+   - Implement proper key management
+   - Add monitoring and logging
+
+### Troubleshooting
+
+- **Library Integration**: Check Go module dependencies and file permissions
+- **Docker Integration**: Verify container logs and volume mounts
+- **Both**: Ensure RSA keys are properly formatted and accessible
+
+For detailed documentation, see the README files in each example directory.
 
 

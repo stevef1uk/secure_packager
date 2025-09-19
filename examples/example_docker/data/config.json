@@ -1,0 +1,11 @@
+{
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "secure_db"
+  },
+  "api": {
+    "version": "1.0",
+    "endpoint": "/api/v1"
+  }
+}
