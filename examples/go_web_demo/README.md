@@ -10,6 +10,9 @@ This is a Go-based web interface alternative to Gradio for demonstrating the sec
 - **File Browser**: View and inspect files at each stage
 - **Complete Workflow**: Run the entire process with one click
 - **Real-time Feedback**: Live status updates and error handling
+- **Pre-generated Keys**: RSA key pairs generated automatically by demo script
+- **File Upload/Download**: Upload files for encryption and download encrypted/decrypted files
+- **License Management**: Full licensing workflow with token issuance and verification
 
 ## Architecture
 
@@ -25,11 +28,45 @@ This is a Go-based web interface alternative to Gradio for demonstrating the sec
 - Docker and Docker Compose
 - Go 1.21+ (for local development)
 
-### Running with Docker Compose
+### Running with Demo Script (Recommended)
 
-1. **Clone and navigate to the demo directory:**
+The easiest way to start the demo is using the provided `demo.sh` script, which handles all setup automatically:
+
+1. **Navigate to the demo directory:**
    ```bash
    cd examples/go_web_demo
+   ```
+
+2. **Run the demo script:**
+   ```bash
+   ./demo.sh
+   ```
+
+   This script will:
+   - Check Docker and Docker Compose availability
+   - Clean up previous containers
+   - Build the keygen container
+   - Generate RSA key pairs (customer and vendor)
+   - Build the web demo container
+   - Start all services
+   - Display access information
+
+3. **Access the web interface:**
+   Open your browser to `http://localhost:8080`
+
+4. **Stop the services:**
+   ```bash
+   docker-compose down
+   ```
+
+### Manual Setup (Alternative)
+
+If you prefer to run the setup manually:
+
+1. **Generate keys first:**
+   ```bash
+   cd examples/go_web_demo
+   ./generate_keys.sh
    ```
 
 2. **Start the services:**
@@ -38,12 +75,7 @@ This is a Go-based web interface alternative to Gradio for demonstrating the sec
    ```
 
 3. **Access the web interface:**
-   Open your browser to `http://localhost:8081`
-
-4. **Stop the services:**
-   ```bash
-   docker-compose down
-   ```
+   Open your browser to `http://localhost:8080`
 
 ### Running Locally (Development)
 
@@ -54,25 +86,85 @@ This is a Go-based web interface alternative to Gradio for demonstrating the sec
 
 2. **Build the keygen container:**
    ```bash
-   docker build -t secure-packager-keygen:latest -f ../gradio_demo/Dockerfile.keygen ../gradio_demo/
+   docker build -t secure-packager-keygen:latest -f ../keygen/Dockerfile.keygen ../keygen/
    ```
 
-3. **Run the application:**
+3. **Generate keys:**
+   ```bash
+   ./generate_keys.sh
+   ```
+
+4. **Run the application:**
    ```bash
    go run main.go
    ```
 
-4. **Access the web interface:**
+5. **Access the web interface:**
    Open your browser to `http://localhost:8080`
+
+## Demo Script (`demo.sh`)
+
+The `demo.sh` script provides a complete automated setup for the Go Web Demo. It handles all the necessary steps to get the demo running:
+
+### What the Script Does
+
+1. **Environment Checks**: Verifies Docker and Docker Compose are available
+2. **Cleanup**: Removes any existing containers to ensure a clean start
+3. **Directory Setup**: Creates necessary directories (`data`, `output`, `keys`, `logs`)
+4. **Key Generation**: Builds the keygen container and generates RSA key pairs
+5. **Container Building**: Builds the web demo container
+6. **Service Startup**: Starts all services with Docker Compose
+7. **Health Check**: Tests the health endpoint to verify everything is working
+8. **User Guidance**: Provides clear instructions and next steps
+
+### Key Generation Process
+
+The script automatically generates two RSA key pairs using OpenSSL in a Docker container:
+
+- **Customer Keys**: `customer_private.pem` and `customer_public.pem` (2048 bits)
+- **Vendor Keys**: `vendor_private.pem` and `vendor_public.pem` (2048 bits)
+
+**Important Security Notes:**
+- Keys are generated on the host system, not inside containers
+- Private keys are stored securely in the `keys/` directory with proper permissions
+- The customer private key is required for decryption - keep it secure
+- The customer public key can be shared openly for encryption
+- Vendor keys are used for license token signing and verification
+
+**Key Management:**
+- Keys are generated with 2048-bit RSA (recommended minimum)
+- Proper file permissions are set automatically
+- Keys persist between container restarts
+- To regenerate keys, delete the `keys/` directory and run `./demo.sh` again
+
+### Script Output
+
+When you run `./demo.sh`, you'll see:
+- Progress indicators for each step
+- Service status information
+- Access URL and port information
+- Available API endpoints
+- Local directory structure
+- Commands for stopping, viewing logs, and rebuilding
+
+### Troubleshooting the Script
+
+If the script fails:
+1. Ensure Docker is running: `docker ps`
+2. Check Docker Compose: `docker-compose --version`
+3. Verify port 8080 is available
+4. Check the logs: `docker-compose logs -f web-demo`
 
 ## Usage
 
 ### Web Interface Tabs
 
 1. **🔑 Key Generation**
-   - Generate RSA key pairs (customer and vendor)
-   - Adjustable key size (1024-4096 bits)
-   - Uses OpenSSL in Docker container
+   - View pre-generated RSA key pairs (customer and vendor)
+   - Keys are generated by `demo.sh` script before starting the UI
+   - Shows key information and regeneration instructions
+   - **Note**: The UI displays existing keys and provides instructions for regeneration
+   - Uses OpenSSL in Docker container for key generation
 
 2. **📄 Create Files**
    - Create sample files for encryption
@@ -126,7 +218,7 @@ The secure file sharing process involves:
    cd examples/go_web_demo
    docker-compose up --build
    ```
-   Access: `http://localhost:8081`
+   Access: `http://localhost:8080`
 
 2. **Generate RSA key pair:**
    - Navigate to the **🔑 Key Generation** tab
@@ -150,7 +242,7 @@ The secure file sharing process involves:
    cd examples/go_web_demo
    docker-compose up --build
    ```
-   Access: `http://localhost:8081`
+   Access: `http://localhost:8080`
 
 2. **Prepare Person B's public key:**
    - In the **📁 File Browser** tab, navigate to the `keys` directory
@@ -262,17 +354,25 @@ This workflow ensures that only the intended recipient can decrypt the files, ev
 
 ### API Endpoints
 
-The web interface provides a REST API:
+The web interface provides a comprehensive REST API:
 
-- `GET /health` - Health check
-- `POST /api/keys/generate` - Generate RSA keys
-- `POST /api/files/create` - Create sample files
-- `POST /api/package` - Package files
-- `POST /api/token/issue` - Issue license token
-- `POST /api/unpack` - Unpack files
-- `GET /api/files/:directory` - List files
-- `POST /api/files/read` - Read file content
-- `POST /api/workflow/complete` - Run complete workflow
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+| POST | `/api/keys/generate` | Generate RSA keys (shows instructions) |
+| POST | `/api/files/create` | Create sample files |
+| POST | `/api/files/upload` | Upload files to data directory |
+| POST | `/api/package` | Package files with encryption |
+| POST | `/api/token/issue` | Issue license token |
+| POST | `/api/unpack` | Unpack files with decryption |
+| POST | `/api/files/upload-unpack` | Upload and unpack encrypted files |
+| GET | `/api/files/:directory` | List files in directory |
+| POST | `/api/files/read` | Read file content |
+| GET | `/api/files/download/:filename` | Download files |
+| POST | `/api/files/clear-data` | Clear data directory |
+| POST | `/api/files/clear-output` | Clear output directory |
+| POST | `/api/files/clear-decrypted` | Clear decrypted directory |
+| POST | `/api/workflow/complete` | Run complete workflow |
 
 ## Docker Containers
 
@@ -346,10 +446,33 @@ The application includes comprehensive error handling and user feedback. Test di
 
 ### Common Issues
 
-1. **Docker not running**: Ensure Docker daemon is running
-2. **Permission denied**: Check Docker socket permissions
-3. **Port conflicts**: Change port in docker-compose.yml
-4. **Container build failures**: Check Dockerfile syntax and dependencies
+1. **Docker not running**: 
+   - Ensure Docker daemon is running: `docker ps`
+   - Check Docker Compose: `docker-compose --version`
+
+2. **Permission denied**: 
+   - Check Docker socket permissions
+   - On Linux: `sudo usermod -aG docker $USER` and logout/login
+   - On macOS: Ensure Docker Desktop is running
+
+3. **Port conflicts**: 
+   - Default port is 8080, change in `docker-compose.yml` if needed
+   - Check if port is in use: `lsof -i :8080`
+
+4. **Container build failures**: 
+   - Check Dockerfile syntax and dependencies
+   - Ensure Docker has enough resources allocated
+   - Try rebuilding: `docker-compose build --no-cache`
+
+5. **Keys not found error**: 
+   - Always use `./demo.sh` instead of `docker-compose up --build` directly
+   - Run `./generate_keys.sh` first if needed
+   - Check that `keys/` directory exists and contains key files
+
+6. **File permission issues**: 
+   - On x86 machines, keys may be owned by root
+   - Fix with: `sudo chown -R $(id -u):$(id -g) keys/`
+   - The `generate_keys.sh` script handles this automatically
 
 ### Debug Mode
 
@@ -362,7 +485,28 @@ export GIN_MODE=debug
 
 View container logs:
 ```bash
+# All services
+docker-compose logs -f
+
+# Specific service
 docker-compose logs -f web-demo
+
+# Key generation logs
+docker-compose logs -f keygen
+```
+
+### Health Checks
+
+Test the API endpoints:
+```bash
+# Health check
+curl http://localhost:8080/health
+
+# Test complete workflow
+curl -X POST http://localhost:8080/api/workflow/complete
+
+# List files
+curl http://localhost:8080/api/files/data
 ```
 
 ## Comparison with Gradio
