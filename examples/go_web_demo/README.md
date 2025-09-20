@@ -104,6 +104,162 @@ This is a Go-based web interface alternative to Gradio for demonstrating the sec
    - Step-by-step progress display
    - Comprehensive error handling
 
+## Two-Person Secure File Sharing Workflow
+
+This section demonstrates how Person A (sender) and Person B (recipient) can securely create and share encrypted files using the web interface, following proper security practices for key creation and sharing.
+
+### Overview
+
+The secure file sharing process involves:
+1. **Person B** generates their own RSA key pair (public + private)
+2. **Person B** shares their public key with Person A through a secure channel
+3. **Person A** uses Person B's public key to encrypt files
+4. **Person A** sends the encrypted files to Person B
+5. **Person B** uses their private key to decrypt the files
+
+### Step-by-Step Process
+
+#### Phase 1: Person B (Recipient) - Key Generation
+
+1. **Person B starts the web interface:**
+   ```bash
+   cd examples/go_web_demo
+   docker-compose up --build
+   ```
+   Access: `http://localhost:8081`
+
+2. **Generate RSA key pair:**
+   - Navigate to the **🔑 Key Generation** tab
+   - Select appropriate key size (recommended: 2048 or 4096 bits)
+   - Click "Generate Keys"
+   - **Important**: Save the private key securely - it will be needed for decryption
+
+3. **Export the public key:**
+   - In the **📁 File Browser** tab, navigate to the `keys` directory
+   - Open `customer_public_key.pem` and copy its contents
+   - This is the public key that will be shared with Person A
+
+4. **Secure key storage:**
+   - **Private key**: Store `customer_private_key.pem` in a secure location (password manager, encrypted storage)
+   - **Public key**: Can be shared openly (this is safe to share)
+
+#### Phase 2: Person A (Sender) - File Encryption
+
+1. **Person A starts their own instance:**
+   ```bash
+   cd examples/go_web_demo
+   docker-compose up --build
+   ```
+   Access: `http://localhost:8081`
+
+2. **Prepare Person B's public key:**
+   - In the **📁 File Browser** tab, navigate to the `keys` directory
+   - Replace the contents of `customer_public_key.pem` with Person B's public key
+   - **Important**: Only replace the public key, keep the private key as-is
+
+3. **Create files to encrypt:**
+   - Navigate to the **📄 Create Files** tab
+   - Create the files you want to send to Person B
+   - Customize content as needed
+
+4. **Encrypt the files:**
+   - Navigate to the **📦 Package Files** tab
+   - Click "Package Files" to encrypt them with Person B's public key
+   - The encrypted ZIP file will be created in the `output` directory
+
+5. **Share the encrypted files:**
+   - In the **📁 File Browser** tab, navigate to the `output` directory
+   - Download `encrypted_files.zip`
+   - Send this file to Person B through your preferred secure channel
+
+#### Phase 3: Person B (Recipient) - File Decryption
+
+1. **Person B receives the encrypted file:**
+   - Place the `encrypted_files.zip` file in their `output` directory
+   - Or use the web interface to upload it
+
+2. **Decrypt the files:**
+   - Navigate to the **📤 Unpack Files** tab
+   - Click "Unpack Files" to decrypt using their private key
+   - Decrypted files will appear in the `output/decrypted` directory
+
+3. **Verify the files:**
+   - Use the **📁 File Browser** tab to view the decrypted files
+   - Ensure all files are intact and readable
+
+### Security Best Practices
+
+#### Key Management
+- **Never share private keys**: Only the public key should be shared
+- **Use strong key sizes**: Minimum 2048 bits, preferably 4096 bits
+- **Secure key storage**: Store private keys in encrypted password managers
+- **Key rotation**: Consider generating new key pairs periodically
+
+#### Communication Security
+- **Verify public keys**: Confirm the public key belongs to the intended recipient
+- **Use secure channels**: Share public keys through verified communication channels
+- **Verify file integrity**: Use checksums or digital signatures when possible
+
+#### File Handling
+- **Secure transmission**: Use encrypted channels (HTTPS, encrypted email) for file sharing
+- **Temporary storage**: Delete encrypted files after successful decryption
+- **Access control**: Ensure only authorized parties have access to decrypted files
+
+### Advanced Scenarios
+
+#### With License Tokens
+If Person A wants to add licensing restrictions:
+
+1. **Person A generates vendor keys:**
+   - Use the **🔑 Key Generation** tab to create vendor key pair
+   - Keep vendor private key secure
+
+2. **Create license token:**
+   - Navigate to **🎫 License Token** tab
+   - Issue a token with appropriate restrictions
+   - Include this token with the encrypted files
+
+3. **Person B verifies license:**
+   - During decryption, the system will verify the license token
+   - Files will only decrypt if the license is valid
+
+#### Multiple Recipients
+To send the same files to multiple people:
+
+1. **Each recipient generates their own key pair**
+2. **Person A encrypts files separately for each recipient**
+3. **Share the appropriate encrypted file with each recipient**
+
+### Troubleshooting Common Issues
+
+#### "Invalid key format" error
+- Ensure the public key is in PEM format
+- Check that the key file contains the complete key (including headers)
+
+#### "Decryption failed" error
+- Verify you're using the correct private key
+- Ensure the encrypted file wasn't corrupted during transmission
+- Check that the file was encrypted with the matching public key
+
+#### "License verification failed" error
+- Verify the license token is valid and not expired
+- Ensure the vendor public key is correct
+- Check that the token was issued by the correct vendor
+
+### Security Verification Checklist
+
+Before sharing sensitive files, verify:
+
+- [ ] Public key was received through a secure, verified channel
+- [ ] Key size is appropriate (2048+ bits)
+- [ ] Files are encrypted successfully
+- [ ] Encrypted files are transmitted securely
+- [ ] Recipient can successfully decrypt files
+- [ ] Private keys are stored securely
+- [ ] Temporary files are cleaned up
+
+This workflow ensures that only the intended recipient can decrypt the files, even if the encrypted files or public keys are intercepted during transmission.
+
 ### API Endpoints
 
 The web interface provides a REST API:
