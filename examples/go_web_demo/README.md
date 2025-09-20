@@ -52,7 +52,7 @@ The easiest way to start the demo is using the provided `demo.sh` script, which 
    - Display access information
 
 3. **Access the web interface:**
-   Open your browser to `http://localhost:8080`
+   Open your browser to `http://localhost:8081`
 
 4. **Stop the services:**
    ```bash
@@ -75,7 +75,7 @@ If you prefer to run the setup manually:
    ```
 
 3. **Access the web interface:**
-   Open your browser to `http://localhost:8080`
+   Open your browser to `http://localhost:8081`
 
 ### Running Locally (Development)
 
@@ -100,7 +100,7 @@ If you prefer to run the setup manually:
    ```
 
 5. **Access the web interface:**
-   Open your browser to `http://localhost:8080`
+   Open your browser to `http://localhost:8081`
 
 ## Demo Script (`demo.sh`)
 
@@ -152,7 +152,7 @@ When you run `./demo.sh`, you'll see:
 If the script fails:
 1. Ensure Docker is running: `docker ps`
 2. Check Docker Compose: `docker-compose --version`
-3. Verify port 8080 is available
+3. Verify port 8081 is available
 4. Check the logs: `docker-compose logs -f web-demo`
 
 ## Usage
@@ -218,7 +218,7 @@ The secure file sharing process involves:
    cd examples/go_web_demo
    docker-compose up --build
    ```
-   Access: `http://localhost:8080`
+   Access: `http://localhost:8081`
 
 2. **Generate RSA key pair:**
    - Navigate to the **🔑 Key Generation** tab
@@ -242,7 +242,7 @@ The secure file sharing process involves:
    cd examples/go_web_demo
    docker-compose up --build
    ```
-   Access: `http://localhost:8080`
+   Access: `http://localhost:8081`
 
 2. **Prepare Person B's public key:**
    - In the **📁 File Browser** tab, navigate to the `keys` directory
@@ -384,7 +384,7 @@ The web interface provides a comprehensive REST API:
 ### Web Demo Container
 - **Image**: Built from local Dockerfile
 - **Purpose**: Go web application
-- **Port**: 8080
+- **Port**: 8081
 
 ### Secure Packager Container
 - **Image**: `stevef1uk/secure-packager:latest`
@@ -456,8 +456,8 @@ The application includes comprehensive error handling and user feedback. Test di
    - On macOS: Ensure Docker Desktop is running
 
 3. **Port conflicts**: 
-   - Default port is 8080, change in `docker-compose.yml` if needed
-   - Check if port is in use: `lsof -i :8080`
+   - Default port is 8081, change in `docker-compose.yml` if needed
+   - Check if port is in use: `lsof -i :8081`
 
 4. **Container build failures**: 
    - Check Dockerfile syntax and dependencies
@@ -500,13 +500,13 @@ docker-compose logs -f keygen
 Test the API endpoints:
 ```bash
 # Health check
-curl http://localhost:8080/health
+curl http://localhost:8081/health
 
 # Test complete workflow
-curl -X POST http://localhost:8080/api/workflow/complete
+curl -X POST http://localhost:8081/api/workflow/complete
 
 # List files
-curl http://localhost:8080/api/files/data
+curl http://localhost:8081/api/files/data
 ```
 
 ## Comparison with Gradio

@@ -91,7 +91,7 @@ echo
 echo "🌐 Web Interface Available!"
 echo "=========================="
 echo
-echo "📍 URL: http://localhost:8080"
+echo "📍 URL: http://localhost:8081"
 echo
 echo "🔧 Available Features:"
 echo "  - Key Generation (RSA key pairs)"
@@ -114,8 +114,8 @@ echo "  - POST /api/files/read - Read file"
 echo "  - POST /api/workflow/complete - Complete workflow"
 echo
 echo "🧪 Test the API:"
-echo "  curl http://localhost:8080/health"
-echo "  curl -X POST http://localhost:8080/api/workflow/complete"
+echo "  curl http://localhost:8081/health"
+echo "  curl -X POST http://localhost:8081/api/workflow/complete"
 echo
 echo "📁 Local Directories:"
 echo "  - Data:      $(pwd)/data/"
@@ -135,14 +135,14 @@ echo
 
 # Test the health endpoint
 echo "🧪 Testing health endpoint..."
-if curl -s http://localhost:8080/health > /dev/null; then
+if curl -s http://localhost:8081/health > /dev/null; then
     echo "✅ Health check passed - service is running!"
 else
     echo "❌ Health check failed - service may not be ready yet"
-    echo "   Please wait a moment and try accessing http://localhost:8080"
+    echo "   Please wait a moment and try accessing http://localhost:8081"
 fi
 
 echo
-echo "🎉 Demo is ready! Open http://localhost:8080 in your browser to start using the interface."
+echo "🎉 Demo is ready! Open http://localhost:8081 in your browser to start using the interface."
 echo
 echo "💡 Pro tip: Try the 'Complete Workflow' tab for a full demonstration!"
