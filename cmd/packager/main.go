@@ -112,6 +112,10 @@ func zipOutputs(srcDir, zipPath string) error {
 		if e.IsDir() {
 			continue
 		}
+		// Skip the zip file itself to prevent infinite recursion
+		if e.Name() == "encrypted_files.zip" {
+			continue
+		}
 		p := filepath.Join(srcDir, e.Name())
 		if err := addFile(p, e.Name()); err != nil {
 			return err
