@@ -17,6 +17,7 @@ Modern teams need to ship valuable data/models to customers securely, without pa
 - **Portable**: Multi-arch container images (linux/amd64, linux/arm64).
 
 Note: the recipient of the file should create the key pair and send the public key to be used to create the archive.
+Important: In this version only the top level files are actually encrypted
 
 
 Envelope encryption utilities for distributing data/models:
