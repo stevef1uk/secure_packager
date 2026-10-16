@@ -4,7 +4,7 @@
 #   docker run --rm -v $(pwd)/input:/in -v $(pwd)/out:/out \
 #     yourorg/secure-packager:latest packager -in /in -out /out -pub /out/customer_public.pem -zip=true
 
-FROM golang:1.21-bookworm AS build
+FROM golang:1.26.9-bookworm AS build
 WORKDIR /src
 
 # Enable reproducible, static builds
@@ -32,7 +32,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -ldflags="-s -w" -o /out/issue-token ./cmd/issue-token
 
-FROM alpine:3.20
+FROM alpine:3.22
 WORKDIR /app
 RUN apk add --no-cache ca-certificates
 
